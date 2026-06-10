@@ -1,3 +1,13 @@
 /target
 __pycache__/
 /bindings/java/target/
+*.dll
+*.so
+*.dylib
+node_modules/
+package-lock.json
+*.exp
+*.exe
+*.pdb
+*.lib
+*.obj

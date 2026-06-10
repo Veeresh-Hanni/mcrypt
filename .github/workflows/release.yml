@@ -35,6 +35,46 @@ jobs:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
+  # ---------------- 3. JAVA BUILD & MAVEN PUBLISH ----------------
+  publish-java:
+    name: Build & Publish Java (Maven)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
+          settings-path: ${{ github.workspace }} # location for the settings.xml file
+          
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        
+      - name: Build Rust Library (Linux)
+        run: |
+          cargo build --release
+          mkdir -p bindings/java/src/main/resources/linux-x86-64
+          cp target/release/libmcrypt_native.so bindings/java/src/main/resources/linux-x86-64/
+          
+      # Note: For a complete cross-platform JAR, you'd typically build for Win/Mac as well 
+      # and bundle them all. We are building Linux here to verify the Java bindings.
+      
+      - name: Build and Test Java Bindings
+        run: |
+          cd bindings/java
+          mvn clean package
+          
+      - name: Publish to GitHub Packages
+        run: |
+          cd bindings/java
+          # mvn deploy -s $GITHUB_WORKSPACE/settings.xml
+          echo "Maven deploy placeholder - requires full setup for OSSRH or GH Packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
   # ---------------- 2. NODE.JS BUILD & NPM PUBLISH ----------------
   publish-nodejs:
     name: Build & Publish Node.js (NPM)

@@ -27,7 +27,7 @@ fn verify(password_to_check: &str, stored_hash: &str, custom_pepper: Option<&str
     let parts: Vec<&str> = stored_hash.split('$').collect();
     if parts.len() < 7 { return false; }
     
-    let salt_prefix = format!("$mcrypt$v3$r{}$sl{}${}", parts[3], parts[4], parts[5]);
+    let salt_prefix = format!("$mcrypt$v3${}${}${}", parts[3], parts[4], parts[5]);
     
     match hashers::core_hash_with_salt(password_to_check, &salt_prefix, custom_pepper) {
         Ok(new_hash) => {
@@ -84,7 +84,7 @@ pub extern "C" fn mcrypt_verify(c_password: *const c_char, c_stored_hash: *const
     let parts: Vec<&str> = stored_hash.split('$').collect();
     if parts.len() < 7 { return false; }
     
-    let salt_prefix = format!("$mcrypt$v3$r{}$sl{}${}", parts[3], parts[4], parts[5]);
+    let salt_prefix = format!("$mcrypt$v3${}${}${}", parts[3], parts[4], parts[5]);
     
     match hashers::core_hash_with_salt(password, &salt_prefix, None) {
         Ok(new_hash) => {
