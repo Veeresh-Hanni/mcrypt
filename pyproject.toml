@@ -3,13 +3,17 @@ requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "mcrypt-mass-crypto" # ಮುಂಚೆ ಬರಿ mcrypt ಇತ್ತು, ಇದನ್ನು ಚೇಂಜ್ ಮಾಡಿ!
+name = "mcrypt-mass-crypto"
 version = "0.1.0"
 requires-python = ">=3.7"
 readme = "README.md"
 description = "Mass Cryptography (mcrypt) CLI tool for high-speed bulk password hashing."
-repository = "https://github.com/Veeresh-Hanni/mcrypt"
-license = "MIT"
-authors = ["Veeresh Hanni"]
+license = { text = "MIT" }
+authors = [{ name = "Veeresh Hanni" }]
 
- 
+[project.urls]
+Repository = "https://github.com/Veeresh-Hanni/mcrypt"
+
+[tool.maturin]
+module-name = "mcrypt"
+features = ["pyo3/extension-module"]

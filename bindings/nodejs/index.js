@@ -1,8 +1,13 @@
 const koffi = require('koffi');
 const path = require('path');
 
-// ಪ್ರೊಡಕ್ಷನ್ ಮತ್ತು ಲೋಕಲ್ ಬೈನರಿ ಲೋಡ್ ಮಾಡುವುದು
-const libPath = path.join(__dirname, '../../target/release/mcrypt.dll'); 
+const nativeLibraryName = process.platform === 'win32'
+    ? 'mcrypt_native.dll'
+    : process.platform === 'darwin'
+        ? 'libmcrypt_native.dylib'
+        : 'libmcrypt_native.so';
+
+const libPath = path.join(__dirname, '../../target/release', nativeLibraryName);
 const lib = koffi.load(libPath);
 
 // koffi ಶೈಲಿಯಲ್ಲಿ ಫಂಕ್ಷನ್ ಸಿಗ್ನೇಚರ್ ಮ್ಯಾಪ್ ಮಾಡುವುದು

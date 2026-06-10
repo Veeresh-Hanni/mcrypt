@@ -59,6 +59,22 @@ npm install mcrypt-mass-crypto
 
 ```
 
+### Java Installation
+
+Build the native library first, then build the Java bindings:
+
+```bash
+cargo build --release
+cd bindings/java
+mvn package
+```
+
+At runtime, make sure the native library is on `java.library.path` or pass an explicit JNA library name/path:
+
+```bash
+java -Dmcrypt.library=../../target/release/mcrypt_native -jar your-app.jar
+```
+
 ---
 
 ## 🛠️ Usage Quickstart
@@ -97,6 +113,18 @@ db_hash = mcrypt.hash_with_salt("KoppalGadag@2026", salt_prefix=salt)
 is_valid = mcrypt.verify("KoppalGadag@2026", db_hash)
 print(f"Authentication success: {is_valid}") # Returns: True
 
+```
+
+### 3. Using in Java Applications
+
+```java
+import io.github.veereshhanni.mcrypt.Mcrypt;
+
+String salt = Mcrypt.gensalt(12);
+String hash = Mcrypt.hashWithSalt("KoppalGadag@2026", salt);
+boolean valid = Mcrypt.verify("KoppalGadag@2026", hash);
+
+System.out.println("Authentication success: " + valid);
 ```
 
 ---

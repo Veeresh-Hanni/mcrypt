@@ -9,6 +9,10 @@ license = "MIT"
 readme = "README.md"
 repository = "https://github.com/Veeresh-Hanni/mcrypt"
 
+[lib]
+name = "mcrypt_native"
+crate-type = ["cdylib", "rlib"]
+
 [[bin]]
 name = "mcrypt" # ಡೆವಲಪರ್ಸ್ ಟರ್ಮಿನಲ್ ಒಳಗೆ ಬಳಸುವ ಅಸಲಿ ಕಮಾಂಡ್ ನೇಮ್
 path = "src/main.rs"
