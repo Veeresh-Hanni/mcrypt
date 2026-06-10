@@ -80,7 +80,7 @@ jobs:
           cd bindings/java
           mvn deploy -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=info
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
   # Node.js: Publish to NPM
   publish-nodejs:
