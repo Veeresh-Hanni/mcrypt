@@ -1,0 +1,8 @@
+{
+  "name": "mcrypt-mass-crypto",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "ffi-napi": "^4.0.3"
+  }
+}

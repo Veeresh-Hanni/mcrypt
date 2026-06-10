@@ -1,0 +1,29 @@
+name: mcrypt Global Package Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-publish:
+    runs-on: windows-latest # ನಿಮ್ಮ ಲೋಕಲ್ ಎನ್ವಿರಾನ್ಮೆಂಟ್ ತರಹವೇ ವಿಂಡೋಸ್ ಬಿಲ್ಡ್
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - name: Compile Core
+        run: cargo build --release
+        
+      - name: Publish Python (Maturin)
+        run: pip install maturin && maturin publish
+        env:
+          MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Publish Node.js (NPM)
+        run: |
+          cd bindings/nodejs
+          npm install
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

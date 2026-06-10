@@ -1,8 +1,11 @@
 import mcrypt
 import os
 
+
 print("--- mcrypt (Mass Crypto) Rust Native Test ---")
 
+
+salt = mcrypt
 # 1. ಹ್ಯಾಶ್ ಟೆಸ್ಟ್
 password = "Gadag@2026"
 hashed = mcrypt.hash(password, rounds=12)
