@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>io.github.veereshhanni</groupId>
+    <groupId>io.github.veeresh-hanni</groupId>
     <artifactId>mcrypt-mass-crypto-java</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1-rc1</version>
     <packaging>jar</packaging>
 
     <name>mcrypt Java Bindings</name>
@@ -23,8 +23,29 @@
     <developers>
         <developer>
             <name>Veeresh Hanni</name>
+            <email>veereshhanni347@gmail.com</email>
         </developer>
     </developers>
+
+    <scm>
+        <url>https://github.com/Veeresh-Hanni/mcrypt</url>
+        <connection>scm:git:https://github.com/Veeresh-Hanni/mcrypt.git</connection>
+        <developerConnection>scm:git:https://github.com/Veeresh-Hanni/mcrypt.git</developerConnection>
+    </scm>
+
+    <distributionManagement>
+        <!-- GitHub Packages (NO GPG SIGNING REQUIRED) -->
+        <repository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Veeresh-Hanni/mcrypt</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/Veeresh-Hanni/mcrypt</url>
+        </snapshotRepository>
+    </distributionManagement>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -54,6 +75,83 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.2.5</version>
             </plugin>
+            
+            <!-- Copy native binaries to resources before packaging -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- Copy Linux binary -->
+                                <copy file="${basedir}/../../target/release/libmcrypt_native.so"
+                                      todir="${basedir}/src/main/resources/linux-x86-64"
+                                      failonerror="false"/>
+                                <!-- Copy macOS binary -->
+                                <copy file="${basedir}/../../target/release/libmcrypt_native.dylib"
+                                      todir="${basedir}/src/main/resources/macos-x86-64"
+                                      failonerror="false"/>
+                                <!-- Copy Windows binary -->
+                                <copy file="${basedir}/../../target/release/mcrypt_native.dll"
+                                      todir="${basedir}/src/main/resources/windows-x86-64"
+                                      failonerror="false"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            
+            <!-- Include native binaries in JAR -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
+            <!-- Source plugin for Maven Central -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.3.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Javadoc plugin for Maven Central -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Nexus Staging plugin removed for GitHub Packages -->
         </plugins>
     </build>
 </project>

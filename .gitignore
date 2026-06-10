@@ -1,13 +1,23 @@
 /target
 __pycache__/
 /bindings/java/target/
-*.dll
-*.so
-*.dylib
 node_modules/
 package-lock.json
 *.exp
-*.exe
 *.pdb
-*.lib
-*.obj
+
+# Binaries excluded from root, but allowed in specific package directories
+/*.dll
+/*.so
+/*.dylib
+/*.exe
+/*.lib
+/*.obj
+
+# Allow binaries in Java resources and Node.js lib directories (for distribution)
+!bindings/java/src/main/resources/**/*.so
+!bindings/java/src/main/resources/**/*.dll
+!bindings/java/src/main/resources/**/*.dylib
+!bindings/nodejs/lib/**/*.so
+!bindings/nodejs/lib/**/*.dll
+!bindings/nodejs/lib/**/*.dylib

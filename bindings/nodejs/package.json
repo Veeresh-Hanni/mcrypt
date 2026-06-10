@@ -1,8 +1,16 @@
 {
   "name": "mcrypt-mass-crypto",
-  "version": "1.2.0",
+  "version": "1.2.1-rc1",
   "main": "index.js",
   "dependencies": {
     "koffi": "^2.9.0"
-  }
+  },
+  "scripts": {
+    "build": "node scripts/copy-binaries.js"
+  },
+  "files": [
+    "index.js",
+    "lib/",
+    "scripts/copy-binaries.js"
+  ]
 }

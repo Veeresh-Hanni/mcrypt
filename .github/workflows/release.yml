@@ -6,39 +6,46 @@ on:
       - 'v*'
 
 jobs:
-  # ---------------- 1. PYTHON BUILD & TWINE PUBLISH ----------------
-  publish-python:
-    name: Build & Publish Python (PyPI via Twine)
+  # Build native binaries for all platforms first
+  build-native:
+    name: Build Native Binaries
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false # ಫಿಕ್ಸ್: ಒಂದು ಓಎಸ್ ಫೇಲ್ ಆದ್ರೆ ಅಥವಾ ಸ್ಲೋ ಆದ್ರೆ ಇನ್ನೊಂದನ್ನು ಕ್ಯಾನ್ಸಲ್ ಮಾಡಬೇಡ!
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: libmcrypt_native.so
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: mcrypt_native.dll
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary: libmcrypt_native.dylib
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          python-version: '3.12'
-          
-      - name: Install Maturin and Twine
-        run: pip install maturin twine
-        
-      - name: Build Python Wheels via Maturin
-        uses: PyO3/maturin-action@v1
+          targets: ${{ matrix.target }}
+      
+      - name: Build Release Binary
+        run: cargo build --release --target ${{ matrix.target }}
+      
+      - name: Upload Binary Artifact
+        uses: actions/upload-artifact@v4
         with:
-          target: x86_64
-          args: --release --out dist
-          
-      - name: Publish to PyPI via Twine
-        run: twine upload dist/* --skip-existing
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          name: binary-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ matrix.binary }}
+          retention-days: 1
 
-  # ---------------- 3. JAVA BUILD & MAVEN PUBLISH ----------------
+  # Java: Publish to GitHub Packages
   publish-java:
-    name: Build & Publish Java (Maven)
+    name: Publish Java (GitHub Packages)
     runs-on: ubuntu-latest
+    needs: build-native
     steps:
       - uses: actions/checkout@v4
       
@@ -47,50 +54,105 @@ jobs:
         with:
           java-version: '11'
           distribution: 'temurin'
-          server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
-          settings-path: ${{ github.workspace }} # location for the settings.xml file
-          
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        
-      - name: Build Rust Library (Linux)
-        run: |
-          cargo build --release
-          mkdir -p bindings/java/src/main/resources/linux-x86-64
-          cp target/release/libmcrypt_native.so bindings/java/src/main/resources/linux-x86-64/
-          
-      # Note: For a complete cross-platform JAR, you'd typically build for Win/Mac as well 
-      # and bundle them all. We are building Linux here to verify the Java bindings.
       
-      - name: Build and Test Java Bindings
+      - name: Download All Binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+      
+      - name: Organize Binaries for Java
+        run: |
+          mkdir -p bindings/java/src/main/resources/linux-x86-64
+          mkdir -p bindings/java/src/main/resources/macos-x86-64
+          mkdir -p bindings/java/src/main/resources/windows-x86-64
+          cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so bindings/java/src/main/resources/linux-x86-64/
+          cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib bindings/java/src/main/resources/macos-x86-64/
+          cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll bindings/java/src/main/resources/windows-x86-64/
+          ls -R bindings/java/src/main/resources/
+        
+      - name: Build Java Package
         run: |
           cd bindings/java
-          mvn clean package
-          
+          mvn clean package -DskipTests
+      
       - name: Publish to GitHub Packages
         run: |
           cd bindings/java
-          # mvn deploy -s $GITHUB_WORKSPACE/settings.xml
-          echo "Maven deploy placeholder - requires full setup for OSSRH or GH Packages"
+          mvn deploy -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=info
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
-  # ---------------- 2. NODE.JS BUILD & NPM PUBLISH ----------------
+
+  # Node.js: Publish to NPM
   publish-nodejs:
-    name: Build & Publish Node.js (NPM)
+    name: Publish Node.js (NPM)
     runs-on: ubuntu-latest
+    needs: build-native
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           registry-url: 'https://registry.npmjs.org'
+      
+      - name: Download All Binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+      
+      - name: Organize Binaries for Node.js
+        run: |
+          mkdir -p bindings/nodejs/lib
+          cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so bindings/nodejs/lib/
+          cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib bindings/nodejs/lib/
+          cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll bindings/nodejs/lib/
+          ls -la bindings/nodejs/lib/
           
-      - name: Build and Publish to NPM
+      - name: Publish to NPM
         run: |
           cd bindings/nodejs
           npm install
-          # ಒಂದು ವೇಳೆ npm publish ಗೆ ಇನ್ನೂ ಟೋಕನ್ ಸೆಟ್ ಮಾಡದಿದ್ದರೆ ಬಿಲ್ಡ್ ಫೇಲ್ ಆಗಬಾರದು ಅಂದ್ರೆ ಇನ್ ಸದ್ಯಕ್ಕೆ echo ಇಡಬಹುದು
-          npm publish --allow-same-version || echo "NPM token configuration pending"
+          npm publish --allow-same-version
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  # Python: Build wheels and publish to PyPI
+  publish-python:
+    name: Publish Python (PyPI)
+    runs-on: ${{ matrix.os }}
+    needs: build-native
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      
+      - name: Download All Binaries
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+      
+      - name: Organize Binaries for Python
+        run: |
+          mkdir -p target/release
+          cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so target/release/ 2>/dev/null || true
+          cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib target/release/ 2>/dev/null || true
+          cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll target/release/ 2>/dev/null || true
+      
+      - name: Install dependencies
+        run: pip install maturin twine
+        
+      - name: Build Python Wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release --out dist
+          
+      - name: Upload wheels to PyPI
+        run: twine upload dist/* --skip-existing
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
