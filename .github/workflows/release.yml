@@ -6,38 +6,36 @@ on:
       - 'v*'
 
 jobs:
-  # ---------------- 1. PYTHON BUILD & PUBLISH ----------------
+  # ---------------- 1. PYTHON BUILD & TWINE PUBLISH ----------------
   publish-python:
-    name: Build & Publish Python (PyPI)
+    name: Build & Publish Python (PyPI via Twine)
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-    permissions:
-      id-token: write
-      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
           
-      - name: Install Maturin
-        run: pip install maturin
+      - name: Install Maturin and Twine
+        run: pip install maturin twine
         
-      - name: Build Python Wheels
+      - name: Build Python Wheels via Maturin
         uses: PyO3/maturin-action@v1
         with:
           target: x86_64
           args: --release --out dist
           
-      - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          skip-existing: true
+      # Twine ಬಳಸಿ ಪಕ್ಕಾ ಸೆಕ್ಯೂರ್ ಆಗಿ PyPI ಗೆ ಅಪ್ಲೋಡ್ ಮಾಡುವುದು
+      - name: Publish to PyPI via Twine
+        run: twine upload dist/* --skip-existing
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
-  # ---------------- 2. NODE.JS BUILD & PUBLISH ----------------
+  # ---------------- 2. NODE.JS BUILD & NPM PUBLISH ----------------
   publish-nodejs:
     name: Build & Publish Node.js (NPM)
     runs-on: ubuntu-latest
