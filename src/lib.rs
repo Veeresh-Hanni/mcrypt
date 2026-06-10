@@ -103,6 +103,6 @@ pub extern "C" fn mcrypt_verify(c_password: *const c_char, c_stored_hash: *const
 #[no_mangle]
 pub extern "C" fn mcrypt_free_string(s: *mut c_char) {
     if !s.is_null() {
-        unsafe { CString::from_raw(s); }
+        unsafe { drop(CString::from_raw(s)); }
     }
 }

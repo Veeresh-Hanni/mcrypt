@@ -6,19 +6,38 @@ on:
       - 'v*'
 
 jobs:
-  build-and-publish:
-    runs-on: windows-latest # ನಿಮ್ಮ ಲೋಕಲ್ ಎನ್ವಿರಾನ್ಮೆಂಟ್ ತರಹವೇ ವಿಂಡೋಸ್ ಬಿಲ್ಡ್
+  publish-python:
+    name: Build & Publish Python (PyPI)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    permissions:
+      id-token: write # Trusted Publishing ಓಪನ್ ಮಾಡಲು ಇದು ಅತಿ ಮುಖ್ಯ!
+      contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-      
-      - name: Compile Core
-        run: cargo build --release
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          
+      - name: Install Maturin
+        run: pip install maturin
         
-      - name: Publish Python (Maturin)
-        run: pip install maturin && maturin publish
-        env:
-          MATURIN_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      # ಬಿಲ್ಡ್ ಮಾಡಲು ಮಾತ್ರ ಮಟುರಿನ್ ಬಳಸಿ
+      - name: Build Python Wheels
+        uses: PyO3/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release --out dist
+          
+      # ಅಪ್ಲೋಡ್ ಮಾಡಲು ಅಧಿಕೃತ PyPA ಟೂಲ್ ಬಳಸಿ (Maturin Upload ಡಿಪ್ರಿಕೇಟ್ ಆಗಿದೆ)
+      - name: Publish to PyPI
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # Trusted Publishing ಆನ್ ಆಗಿರುವುದರಿಂದ ಇಲ್ಲಿ ಯಾವುದೇ API ಟೋಕನ್ ಬರೆಯುವ ಅವಶ್ಯಕತೆ ಇಲ್ಲ!
+          skip-existing: true
 
       - name: Publish Node.js (NPM)
         run: |
