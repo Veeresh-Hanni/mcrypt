@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "dependencies": {
-    "ffi-napi": "^4.0.3"
+    "koffi": "^2.9.0" 
   }
 }

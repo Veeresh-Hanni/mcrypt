@@ -1,17 +1,17 @@
-const ffi = require('ffi-napi');
+const koffi = require('koffi');
 const path = require('path');
 
-// ಲೋಕಲ್ ಅಥವಾ ಪ್ರೊಡಕ್ಷನ್ ಬೈನರಿ ಪಾತ್ ಸೆಟ್ ಮಾಡುವುದು
-const libPath = path.join(__dirname, '../../target/release/mcrypt.dll');
+// ಪ್ರೊಡಕ್ಷನ್ ಮತ್ತು ಲೋಕಲ್ ಬೈನರಿ ಲೋಡ್ ಮಾಡುವುದು
+const libPath = path.join(__dirname, '../../target/release/mcrypt.dll'); 
+const lib = koffi.load(libPath);
 
-const lib = ffi.Library(libPath, {
-    'mcrypt_gensalt': ['string', ['uint32', 'size_t']],
-    'mcrypt_hash_with_salt': ['string', ['string', 'string']],
-    'mcrypt_verify': ['bool', ['string', 'string']]
-});
+// koffi ಶೈಲಿಯಲ್ಲಿ ಫಂಕ್ಷನ್ ಸಿಗ್ನೇಚರ್ ಮ್ಯಾಪ್ ಮಾಡುವುದು
+const mcrypt_gensalt = lib.func('mcrypt_gensalt', 'string', ['uint32', 'size_t']);
+const mcrypt_hash_with_salt = lib.func('mcrypt_hash_with_salt', 'string', ['string', 'string']);
+const mcrypt_verify = lib.func('mcrypt_verify', 'bool', ['string', 'string']);
 
 module.exports = {
-    gensalt: (rounds, len) => lib.mcrypt_gensalt(rounds, len),
-    hashWithSalt: (pass, salt) => lib.mcrypt_hash_with_salt(pass, salt),
-    verify: (pass, hash) => lib.mcrypt_verify(pass, hash)
+    gensalt: (rounds, len) => mcrypt_gensalt(rounds, len),
+    hashWithSalt: (pass, salt) => mcrypt_hash_with_salt(pass, salt),
+    verify: (pass, hash) => mcrypt_verify(pass, hash)
 };
