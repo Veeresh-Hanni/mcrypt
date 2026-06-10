@@ -1,7 +1,7 @@
 [package]
 
 name = "mcrypt-mass-crypto"
-version = "1.2.1-rc1"
+version = "1.2.1"
 edition = "2021"
 description = "Mass Cryptography (mcrypt) CLI tool for high-speed bulk password hashing."
 authors = ["Veeresh Hanni veereshhanni347@gmail.com"]

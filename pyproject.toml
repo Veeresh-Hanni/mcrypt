@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "mcrypt-mass-crypto"
-version = "1.2.1-rc1"
+version = "1.2.1"
 requires-python = ">=3.7"
 readme = "README.md"
 description = "Mass Cryptography (mcrypt) CLI tool for high-speed bulk password hashing."
