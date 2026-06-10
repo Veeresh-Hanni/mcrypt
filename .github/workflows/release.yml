@@ -25,5 +25,5 @@ jobs:
           cd bindings/nodejs
           npm install
           npm publish
-        # env:
-        #   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
