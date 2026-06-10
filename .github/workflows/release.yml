@@ -101,7 +101,8 @@ jobs:
           cd bindings/java
           mvn deploy -DskipTests
         env:
-          JAVA_TOOL_OPTIONS: -Duser.home=$HOME
+          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
 
   # Node.js: Publish to NPM
   publish-nodejs:

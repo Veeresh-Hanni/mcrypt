@@ -1,6 +1,6 @@
 {
   "name": "mcrypt-mass-crypto",
-  "version": "1.2.1",
+  "version": "1.2.1-rc2",
   "main": "index.js",
   "dependencies": {
     "koffi": "^2.9.0"
