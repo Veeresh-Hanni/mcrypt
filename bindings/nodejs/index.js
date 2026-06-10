@@ -7,7 +7,18 @@ const nativeLibraryName = process.platform === 'win32'
         ? 'libmcrypt_native.dylib'
         : 'libmcrypt_native.so';
 
-const libPath = path.join(__dirname, '../../target/release', nativeLibraryName);
+// Try bundled binary first (production), then development build
+const bundledPath = path.join(__dirname, 'lib', nativeLibraryName);
+const devPath = path.join(__dirname, '../../target/release', nativeLibraryName);
+
+let libPath;
+try {
+    require('fs').accessSync(bundledPath);
+    libPath = bundledPath;
+} catch {
+    libPath = devPath; // fallback for development
+}
+
 const lib = koffi.load(libPath);
 
 // koffi ಶೈಲಿಯಲ್ಲಿ ಫಂಕ್ಷನ್ ಸಿಗ್ನೇಚರ್ ಮ್ಯಾಪ್ ಮಾಡುವುದು
