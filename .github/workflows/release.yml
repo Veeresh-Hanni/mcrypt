@@ -61,6 +61,7 @@ jobs:
           path: ./binaries
       
       - name: Organize Binaries for Java
+        shell: bash
         run: |
           mkdir -p bindings/java/src/main/resources/linux-x86-64
           mkdir -p bindings/java/src/main/resources/macos-x86-64
@@ -75,12 +76,29 @@ jobs:
           cd bindings/java
           mvn clean package -DskipTests
       
+      - name: Create Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<EOF
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.ACCESS_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
+      
       - name: Publish to GitHub Packages
         run: |
           cd bindings/java
-          mvn deploy -DskipTests -Dorg.slf4j.simpleLogger.defaultLogLevel=info
+          mvn deploy -DskipTests
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JAVA_TOOL_OPTIONS: -Duser.home=$HOME
 
   # Node.js: Publish to NPM
   publish-nodejs:
@@ -100,11 +118,12 @@ jobs:
           path: ./binaries
       
       - name: Organize Binaries for Node.js
+        shell: bash
         run: |
           mkdir -p bindings/nodejs/lib
-          cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so bindings/nodejs/lib/
-          cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib bindings/nodejs/lib/
-          cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll bindings/nodejs/lib/
+          cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so bindings/nodejs/lib/ 2>/dev/null || true
+          cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib bindings/nodejs/lib/ 2>/dev/null || true
+          cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll bindings/nodejs/lib/ 2>/dev/null || true
           ls -la bindings/nodejs/lib/
           
       - name: Publish to NPM
@@ -136,11 +155,13 @@ jobs:
           path: ./binaries
       
       - name: Organize Binaries for Python
+        shell: bash
         run: |
           mkdir -p target/release
           cp binaries/binary-x86_64-unknown-linux-gnu/libmcrypt_native.so target/release/ 2>/dev/null || true
           cp binaries/binary-x86_64-apple-darwin/libmcrypt_native.dylib target/release/ 2>/dev/null || true
           cp binaries/binary-x86_64-pc-windows-msvc/mcrypt_native.dll target/release/ 2>/dev/null || true
+          ls -la target/release/
       
       - name: Install dependencies
         run: pip install maturin twine
