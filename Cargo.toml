@@ -1,0 +1,18 @@
+[package]
+name = "mcrypt-cli"
+version = "1.0.0"
+edition = "2021"
+description = "Mass Cryptography (mcrypt) CLI tool for high-speed bulk password hashing."
+authors = ["Veeresh Hanni veereshhanni347@gmail.com"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Veeresh-Hanni/mcrypt"
+
+[[bin]]
+name = "mcrypt" # ಡೆವಲಪರ್ಸ್ ಟರ್ಮಿನಲ್ ಒಳಗೆ ಬಳಸುವ ಅಸಲಿ ಕಮಾಂಡ್ ನೇಮ್
+path = "src/main.rs"
+
+[dependencies]
+sha2 = "0.10"
+rand = "0.8"
+rayon = "1.8" # ಮಾಸ್ ಹ್ಯಾಶಿಂಗ್ ಮಾಡಲು ಪ್ಯಾರಲಲ್ ಪ್ರೊಸೆಸಿಂಗ್ ಲೈಬ್ರರಿ
